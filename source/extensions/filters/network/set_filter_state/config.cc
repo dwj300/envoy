@@ -17,8 +17,14 @@ namespace NetworkFilters {
 namespace SetFilterState {
 
 Network::FilterStatus SetFilterState::onNewConnection() {
-  config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
+  //config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
   return Network::FilterStatus::Continue;
+}
+
+void Filter::onEvent(Network::ConnectionEvent event) {
+  if (event == Network::ConnectionEvent::Connected) {
+    config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
+  }
 }
 
 /**
