@@ -24,4 +24,9 @@ message Config {
   // A sequence of the filter state values to apply in the specified order
   // when a new connection is received.
   repeated common.set_filter_state.v3.FilterStateValue on_new_connection = 1;
+
+  // TODO(Doug): Enable this after testing onEvent
+  // A sequence of the filter state values to apply in the specified order
+  // when a new connection is received.
+  // repeated common.set_filter_state.v3.FilterStateValue on_connected = 2;
 }

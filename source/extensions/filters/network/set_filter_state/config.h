@@ -9,7 +9,9 @@ namespace Extensions {
 namespace NetworkFilters {
 namespace SetFilterState {
 
-class SetFilterState : public Network::ReadFilter, Logger::Loggable<Logger::Id::filter> {
+class SetFilterState : public Network::ReadFilter,
+                       public Network::ConnectionCallbacks,
+                       Logger::Loggable<Logger::Id::filter> {
 public:
   explicit SetFilterState(const Filters::Common::SetFilterState::ConfigSharedPtr config)
       : config_(config) {}
@@ -21,7 +23,13 @@ public:
   Network::FilterStatus onNewConnection() override;
   void initializeReadFilterCallbacks(Network::ReadFilterCallbacks& callbacks) override {
     read_callbacks_ = &callbacks;
+    read_callbacks_->connection().addConnectionCallbacks(*this);
   }
+
+  // Network::ConnectionCallbacks
+  void onEvent(Network::ConnectionEvent event) override;
+  void onAboveWriteBufferHighWatermark() override {}
+  void onBelowWriteBufferLowWatermark() override {}
 
 private:
   const Filters::Common::SetFilterState::ConfigSharedPtr config_;
