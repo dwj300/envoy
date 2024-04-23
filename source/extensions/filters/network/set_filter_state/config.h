@@ -17,10 +17,9 @@ public:
       : config_(config) {}
 
   // Network::ReadFilter
-  Network::FilterStatus onData(Buffer::Instance&, bool) override {
-    return Network::FilterStatus::Continue;
-  }
-  Network::FilterStatus onNewConnection() override;
+  Network::FilterStatus onData(Buffer::Instance& data, bool end_stream) override;
+  Network::FilterStatus onNewConnection() override { return Network::FilterStatus::Continue; };
+
   void initializeReadFilterCallbacks(Network::ReadFilterCallbacks& callbacks) override {
     read_callbacks_ = &callbacks;
     read_callbacks_->connection().addConnectionCallbacks(*this);

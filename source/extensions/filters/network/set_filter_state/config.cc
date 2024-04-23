@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "envoy/buffer/buffer.h"
 #include "envoy/extensions/filters/network/set_filter_state/v3/set_filter_state.pb.h"
 #include "envoy/extensions/filters/network/set_filter_state/v3/set_filter_state.pb.validate.h"
 #include "envoy/formatter/substitution_formatter.h"
@@ -16,19 +17,22 @@ namespace Extensions {
 namespace NetworkFilters {
 namespace SetFilterState {
 
-Network::FilterStatus SetFilterState::onNewConnection() {
+Network::FilterStatus SetFilterState::onData(Buffer::Instance&, bool) {
   // If this is not an SSL connection, do no further checking. High layers should redirect, etc.
   // if SSL is required.
   if (!read_callbacks_->connection().ssl()) {
+    ENVOY_LOG(debug, "Connection is not SSL, continuing.");
     return Network::FilterStatus::Continue;
   } else {
     // Otherwise we need to wait for handshake to be complete before proceeding.
+    ENVOY_LOG(debug, "Connection SSL, pausing.");
     return Network::FilterStatus::StopIteration;
   }
 }
 
 void SetFilterState::onEvent(Network::ConnectionEvent event) {
   if (event == Network::ConnectionEvent::Connected) {
+    ENVOY_LOG(debug, "Got connected event, updating filter state.");
     config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
     read_callbacks_->continueReading();
   }
