@@ -18,21 +18,27 @@ namespace NetworkFilters {
 namespace SetFilterState {
 
 Network::FilterStatus SetFilterState::onData(Buffer::Instance&, bool) {
-  // If this is not an SSL connection, do no further checking. High layers should redirect, etc.
-  // if SSL is required.
+  // If this is not an SSL connection, do no further checking.
   if (!read_callbacks_->connection().ssl()) {
     ENVOY_LOG(debug, "Connection is not SSL, continuing.");
     return Network::FilterStatus::Continue;
-  } else {
-    // Otherwise we need to wait for handshake to be complete before proceeding.
+  }
+
+  // Otherwise we need to wait for handshake to be complete before proceeding.
+  if (!(status_ == Status::Complete)) {
     ENVOY_LOG(debug, "Connection SSL, pausing.");
     return Network::FilterStatus::StopIteration;
   }
+
+  // If we are complete, we can continue.
+  ENVOY_LOG(debug, "Connection SSL, handshake complete, continuing.");
+  return Network::FilterStatus::Continue;
 }
 
 void SetFilterState::onEvent(Network::ConnectionEvent event) {
   if (event == Network::ConnectionEvent::Connected) {
-    ENVOY_LOG(debug, "Got connected event, updating filter state.");
+    ENVOY_LOG(debug, "Got connected event, updating status and filter state");
+    status_ = Status::Complete;
     config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
     read_callbacks_->continueReading();
   }

@@ -31,8 +31,12 @@ public:
   void onBelowWriteBufferLowWatermark() override {}
 
 private:
+  // State of this filter.
+  enum class Status { NotStarted, Waiting, Complete };
+
   const Filters::Common::SetFilterState::ConfigSharedPtr config_;
   Network::ReadFilterCallbacks* read_callbacks_{};
+  Status status_{Status::NotStarted};
 };
 
 } // namespace SetFilterState
