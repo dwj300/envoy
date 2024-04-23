@@ -17,13 +17,20 @@ namespace NetworkFilters {
 namespace SetFilterState {
 
 Network::FilterStatus SetFilterState::onNewConnection() {
-  //config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
-  return Network::FilterStatus::Continue;
+  // If this is not an SSL connection, do no further checking. High layers should redirect, etc.
+  // if SSL is required.
+  if (!read_callbacks_->connection().ssl()) {
+    return Network::FilterStatus::Continue;
+  } else {
+    // Otherwise we need to wait for handshake to be complete before proceeding.
+    return Network::FilterStatus::StopIteration;
+  }
 }
 
 void SetFilterState::onEvent(Network::ConnectionEvent event) {
   if (event == Network::ConnectionEvent::Connected) {
     config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
+    read_callbacks_->continueReading();
   }
 }
 
