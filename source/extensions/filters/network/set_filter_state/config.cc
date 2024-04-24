@@ -17,20 +17,9 @@ namespace Extensions {
 namespace NetworkFilters {
 namespace SetFilterState {
 
-Network::FilterStatus SetFilterState::onData(Buffer::Instance&, bool) {
-  return Network::FilterStatus::Continue;
-}
-
 Network::FilterStatus SetFilterState::onNewConnection() {
-  // If this is not an SSL connection, do no further checking.
-  if (!read_callbacks_->connection().ssl()) {
-    ENVOY_LOG(debug, "Connection is not SSL, continuing.");
-    return Network::FilterStatus::Continue;
-  }
-
-  // Otherwise we need to wait for handshake to be complete before proceeding.
-  ENVOY_LOG(debug, "Connection is SSL, pausing.");
-  return Network::FilterStatus::StopIteration;
+  config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
+  return Network::FilterStatus::Continue;
 }
 
 void SetFilterState::onEvent(Network::ConnectionEvent event) {
@@ -40,7 +29,6 @@ void SetFilterState::onEvent(Network::ConnectionEvent event) {
 
   ENVOY_LOG(debug, "Got connected event, updating filter state and continuing.");
   config_->updateFilterState({}, read_callbacks_->connection().streamInfo());
-  read_callbacks_->continueReading();
 }
 
 /**
